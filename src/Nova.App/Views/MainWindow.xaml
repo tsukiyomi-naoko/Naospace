@@ -1,0 +1,242 @@
+<Window x:Class="Nova.App.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:Nova.App.ViewModels"
+        Title="NOVA Workspace" Width="1100" Height="720" MinWidth="200" MinHeight="300"
+        Background="{DynamicResource Nova.Background}" Foreground="{DynamicResource Nova.Foreground}"
+        FontFamily="Segoe UI" FontSize="12" UseLayoutRounding="True" SnapsToDevicePixels="True"
+        Icon="pack://application:,,,/Assets/nova.ico">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+    </Window.Resources>
+    <DockPanel>
+        <!-- Status bar -->
+        <Border DockPanel.Dock="Bottom" Background="{DynamicResource Nova.PanelAlt}" BorderBrush="{DynamicResource Nova.Border}" BorderThickness="0,1,0,0">
+            <TextBlock x:Name="StatusTextBlock" Text="{Binding StatusText}" Margin="8,2" TextTrimming="CharacterEllipsis"
+                       AutomationProperties.LiveSetting="Polite" AutomationProperties.Name="Status"/>
+        </Border>
+
+        <Grid x:Name="RootGrid">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Name="SidebarColumn" Width="280" MinWidth="160"/>
+                <ColumnDefinition x:Name="SplitterColumn" Width="Auto"/>
+                <ColumnDefinition x:Name="BrowserColumn" Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- ================= Sidebar ================= -->
+            <DockPanel Grid.Column="0" Background="{DynamicResource Nova.Panel}">
+                <!-- Header -->
+                <DockPanel DockPanel.Dock="Top" Margin="4,4,4,0">
+                    <Button x:Name="AppMenuButton" DockPanel.Dock="Left" Style="{StaticResource Nova.IconButton}" Content="&#xE700;"
+                            ToolTip="Menu: window mode, settings, backup" AutomationProperties.Name="Main menu" Click="OnAppMenuClick"/>
+                    <Button DockPanel.Dock="Right" Style="{StaticResource Nova.IconButton}" Content="&#xE921;"
+                            ToolTip="Hide (summon again with the global hotkey or the tray icon)" AutomationProperties.Name="Hide" Click="OnHideClick"/>
+                    <ToggleButton x:Name="BrowserToggle" DockPanel.Dock="Right" Style="{StaticResource Nova.IconButton}" Content="&#xE8A0;"
+                                  ToolTip="Show/hide the file browser (Ctrl+B). Tabs are kept." AutomationProperties.Name="Toggle file browser" Click="OnBrowserToggleClick"/>
+                    <ToggleButton x:Name="TopmostToggle" DockPanel.Dock="Right" Style="{StaticResource Nova.IconButton}" Content="&#xE718;"
+                                  ToolTip="Always on top" AutomationProperties.Name="Always on top" Click="OnTopmostClick"/>
+                    <TextBlock Text="NOVA Workspace" FontWeight="SemiBold" VerticalAlignment="Center" Margin="4,0" TextTrimming="CharacterEllipsis"/>
+                </DockPanel>
+
+                <!-- Workspace selector -->
+                <DockPanel DockPanel.Dock="Top" Margin="4,4,4,0">
+                    <Button DockPanel.Dock="Right" x:Name="WorkspaceMenuButton" Style="{StaticResource Nova.IconButton}" Content="&#xE712;"
+                            ToolTip="Workspace options" AutomationProperties.Name="Workspace options" Click="OnWorkspaceMenuClick"/>
+                    <ToggleButton DockPanel.Dock="Right" Style="{StaticResource Nova.IconButton}" IsChecked="{Binding IsLocked, Mode=TwoWay}"
+                                  ToolTip="Lock workspace: pause automatic switching" AutomationProperties.Name="Lock workspace">
+                        <TextBlock Style="{StaticResource Nova.Glyph}">
+                            <TextBlock.Text>
+                                <Binding Path="IsLocked">
+                                    <Binding.Converter>
+                                        <vm:BoolToGlyphConverter TrueGlyph="&#xE72E;" FalseGlyph="&#xE785;"/>
+                                    </Binding.Converter>
+                                </Binding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                    </ToggleButton>
+                    <Button DockPanel.Dock="Right" Style="{StaticResource Nova.IconButton}" Content="&#xE710;"
+                            ToolTip="New workspace" AutomationProperties.Name="New workspace" Click="OnNewWorkspaceClick"/>
+                    <ComboBox x:Name="WorkspaceCombo" ItemsSource="{Binding Workspaces}" SelectedItem="{Binding ActiveWorkspace, Mode=TwoWay}"
+                              DisplayMemberPath="DisplayName" MinHeight="26" Padding="6,2"
+                              AutomationProperties.Name="Workspace" ToolTip="Switch workspace (Ctrl+1…9)"/>
+                </DockPanel>
+
+                <!-- Session selector -->
+                <DockPanel DockPanel.Dock="Top" Margin="4,2,4,0" DataContext="{Binding ActiveWorkspace}">
+                    <Button DockPanel.Dock="Right" x:Name="SessionMenuButton" Style="{StaticResource Nova.IconButton}" Content="&#xE712;"
+                            ToolTip="Sessions and snapshots" AutomationProperties.Name="Session options" Click="OnSessionMenuClick"/>
+                    <TextBlock DockPanel.Dock="Left" Text="Session" VerticalAlignment="Center" Margin="4,0,6,0" Foreground="{DynamicResource Nova.ForegroundMuted}"/>
+                    <ComboBox ItemsSource="{Binding Sessions}" SelectedItem="{Binding ActiveSession, Mode=TwoWay}" DisplayMemberPath="Name"
+                              MinHeight="24" Padding="6,1" AutomationProperties.Name="Working session"
+                              ToolTip="Working session: its own tabs and pane layout"/>
+                </DockPanel>
+
+                <!-- "Remember this?" suggestion -->
+                <Border DockPanel.Dock="Bottom" Margin="4" Padding="6" CornerRadius="4" Background="{DynamicResource Nova.InfoBar}"
+                        Visibility="{Binding HasSuggestion, Converter={StaticResource BoolToVis}}">
+                    <StackPanel>
+                        <TextBlock Text="{Binding SuggestionText}" TextWrapping="Wrap"/>
+                        <DockPanel Margin="0,4,0,0">
+                            <TextBlock Text="Title contains:" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                            <TextBox Text="{Binding SuggestionToken, UpdateSourceTrigger=PropertyChanged}" MinHeight="22" Padding="2,0"
+                                     AutomationProperties.Name="Window title text to match"/>
+                        </DockPanel>
+                        <WrapPanel Margin="0,4,0,0">
+                            <Button Style="{StaticResource Nova.TextButton}" Content="This project/window" Click="OnSuggestWindow"/>
+                            <Button Style="{StaticResource Nova.TextButton}" Content="This app" Click="OnSuggestApp"/>
+                            <Button Style="{StaticResource Nova.TextButton}" Content="Never for this app" Click="OnSuggestNever"/>
+                            <Button Style="{StaticResource Nova.TextButton}" Content="Just this time" Click="OnSuggestOnce"/>
+                        </WrapPanel>
+                    </StackPanel>
+                </Border>
+
+                <Grid DataContext="{Binding ActiveWorkspace}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="2*" MinHeight="60"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*" MinHeight="50"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Pinned -->
+                    <DockPanel Grid.Row="0">
+                        <Button DockPanel.Dock="Right" x:Name="AddPinButton" Style="{StaticResource Nova.IconButton}" Content="&#xE710;"
+                                ToolTip="Add folder, file, tool, URL or group (or drag folders here)" AutomationProperties.Name="Add pin" Click="OnAddPinClick"/>
+                        <TextBlock Text="PINNED" Style="{StaticResource Nova.SectionHeader}"/>
+                    </DockPanel>
+                    <TreeView x:Name="PinTree" Grid.Row="1" ItemsSource="{Binding Pins}" BorderThickness="0" Background="Transparent"
+                              AllowDrop="True" ItemContainerStyle="{DynamicResource Nova.CompactTreeItem}"
+                              AutomationProperties.Name="Pinned locations"
+                              VirtualizingPanel.IsVirtualizing="True"
+                              PreviewMouseLeftButtonDown="OnPinPreviewMouseDown" PreviewMouseMove="OnPinPreviewMouseMove"
+                              PreviewMouseDown="OnPinPreviewMouseAnyDown" MouseDoubleClick="OnPinDoubleClick" KeyDown="OnPinKeyDown"
+                              PreviewMouseRightButtonDown="OnPinRightButtonDown" ContextMenuOpening="OnPinContextMenuOpening"
+                              DragOver="OnPinDragOver" Drop="OnPinDrop">
+                        <TreeView.ContextMenu>
+                            <ContextMenu/>
+                        </TreeView.ContextMenu>
+                        <TreeView.Resources>
+                            <HierarchicalDataTemplate DataType="{x:Type vm:PinNodeViewModel}" ItemsSource="{Binding Children}">
+                                <StackPanel Orientation="Horizontal" ToolTip="{Binding ToolTip}" Opacity="{Binding ItemOpacity}" Background="Transparent">
+                                    <Grid Width="16" Height="16" Margin="0,0,6,0">
+                                        <Image Source="{Binding Icon}" Width="16" Height="16"/>
+                                        <TextBlock Text="{Binding Glyph}" Style="{StaticResource Nova.Glyph}" FontSize="12"/>
+                                    </Grid>
+                                    <TextBlock Text="{Binding Label}" VerticalAlignment="Center"/>
+                                    <TextBlock Text="  unavailable" VerticalAlignment="Center" FontStyle="Italic"
+                                               Foreground="{DynamicResource Nova.Warning}"
+                                               Visibility="{Binding IsUnavailable, Converter={StaticResource BoolToVis}}"/>
+                                </StackPanel>
+                            </HierarchicalDataTemplate>
+                        </TreeView.Resources>
+                    </TreeView>
+
+                    <GridSplitter Grid.Row="2" Height="5" HorizontalAlignment="Stretch" ResizeDirection="Rows" ResizeBehavior="PreviousAndNext"
+                                  Background="Transparent" Focusable="False" ToolTip="Drag to resize"/>
+
+                    <!-- Working locations -->
+                    <DockPanel Grid.Row="3">
+                        <DockPanel DockPanel.Dock="Top">
+                            <Button DockPanel.Dock="Right" x:Name="WorkingMenuButton" Style="{StaticResource Nova.IconButton}" Content="&#xE712;"
+                                    ToolTip="Working locations options" AutomationProperties.Name="Working locations options" Click="OnWorkingMenuClick"/>
+                            <Button DockPanel.Dock="Right" Style="{StaticResource Nova.IconButton}" Content="&#xE710;"
+                                    ToolTip="Add the current folder as a temporary working location" AutomationProperties.Name="Add current folder to working locations" Click="OnAddWorkingClick"/>
+                            <TextBlock Text="WORKING" Style="{StaticResource Nova.SectionHeader}"
+                                       ToolTip="Temporary locations for the current task (not permanent pins)"/>
+                        </DockPanel>
+                        <ListBox x:Name="WorkingList" ItemsSource="{Binding WorkingLocations}" BorderThickness="0" Background="Transparent"
+                                 ItemContainerStyle="{DynamicResource Nova.CompactListItem}" AllowDrop="True"
+                                 AutomationProperties.Name="Working locations"
+                                 PreviewMouseDown="OnLocationListMouseDown" KeyDown="OnLocationListKeyDown"
+                                 ContextMenuOpening="OnWorkingContextMenuOpening" DragOver="OnWorkingDragOver" Drop="OnWorkingDrop">
+                            <ListBox.ContextMenu>
+                                <ContextMenu/>
+                            </ListBox.ContextMenu>
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" ToolTip="{Binding Path}" Background="Transparent">
+                                        <TextBlock Text="&#xE838;" Style="{StaticResource Nova.Glyph}" FontSize="12" Margin="0,0,6,0"/>
+                                        <TextBlock Text="{Binding DisplayLabel}"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </DockPanel>
+
+                    <!-- Recent -->
+                    <Expander Grid.Row="4" Header="RECENT" Margin="4,4,4,0" IsExpanded="False" FontSize="11"
+                              AutomationProperties.Name="Recent folders in this workspace">
+                        <ListBox x:Name="RecentList" ItemsSource="{Binding RecentFolders}" BorderThickness="0" Background="Transparent" MaxHeight="220"
+                                 ItemContainerStyle="{DynamicResource Nova.CompactListItem}" FontSize="12"
+                                 PreviewMouseDown="OnLocationListMouseDown" KeyDown="OnLocationListKeyDown"
+                                 AutomationProperties.Name="Recent folders">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Path}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Path}"/>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </Expander>
+                </Grid>
+            </DockPanel>
+
+            <GridSplitter x:Name="SidebarSplitter" Grid.Column="1" Width="4" HorizontalAlignment="Stretch" ResizeBehavior="PreviousAndNext"
+                          Background="{DynamicResource Nova.Border}" Focusable="False" DragCompleted="OnSidebarSplitterDragCompleted"/>
+
+            <!-- ================= Browser ================= -->
+            <DockPanel x:Name="BrowserPanel" Grid.Column="2">
+                <DockPanel DockPanel.Dock="Top" Margin="4,4,4,4">
+                    <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
+                        <Button x:Name="BackButton" Style="{StaticResource Nova.IconButton}" Content="&#xE72B;" ToolTip="Back (Alt+Left)" AutomationProperties.Name="Back" Click="OnBackClick"/>
+                        <Button x:Name="ForwardButton" Style="{StaticResource Nova.IconButton}" Content="&#xE72A;" ToolTip="Forward (Alt+Right)" AutomationProperties.Name="Forward" Click="OnForwardClick"/>
+                        <Button x:Name="UpButton" Style="{StaticResource Nova.IconButton}" Content="&#xE74A;" ToolTip="Up to parent folder (Alt+Up)" AutomationProperties.Name="Up" Click="OnUpClick"/>
+                        <Button Style="{StaticResource Nova.IconButton}" Content="&#xE72C;" ToolTip="Refresh (F5)" AutomationProperties.Name="Refresh" Click="OnRefreshClick"/>
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="4,0,0,0">
+                        <Button Style="{StaticResource Nova.IconButton}" Content="&#xE8F4;" ToolTip="New folder (Ctrl+Shift+N)" AutomationProperties.Name="New folder" Click="OnNewFolderClick"/>
+                        <Button Style="{StaticResource Nova.IconButton}" Content="&#xE8C6;" ToolTip="Cut (Ctrl+X)" AutomationProperties.Name="Cut" Click="OnCutClick"/>
+                        <Button Style="{StaticResource Nova.IconButton}" Content="&#xE8C8;" ToolTip="Copy (Ctrl+C)" AutomationProperties.Name="Copy" Click="OnCopyClick"/>
+                        <Button Style="{StaticResource Nova.IconButton}" Content="&#xE77F;" ToolTip="Paste (Ctrl+V)" AutomationProperties.Name="Paste" Click="OnPasteClick"/>
+                        <Button Style="{StaticResource Nova.IconButton}" Content="&#xE8AC;" ToolTip="Rename (F2)" AutomationProperties.Name="Rename" Click="OnRenameClick"/>
+                        <Button Style="{StaticResource Nova.IconButton}" Content="&#xE74D;" ToolTip="Delete to Recycle Bin (Del)" AutomationProperties.Name="Delete" Click="OnDeleteClick"/>
+                        <Border Width="1" Margin="4,4" Background="{DynamicResource Nova.Border}"/>
+                        <Button Style="{StaticResource Nova.TextButton}" Content="Copy ›" ToolTip="Copy selection to the other pane's folder (Shift+F5)" AutomationProperties.Name="Copy to other pane" Click="OnCopyToOtherClick"/>
+                        <Button Style="{StaticResource Nova.TextButton}" Content="Move ›" ToolTip="Move selection to the other pane's folder (Shift+F6)" AutomationProperties.Name="Move to other pane" Click="OnMoveToOtherClick"/>
+                        <ToggleButton x:Name="DualPaneToggle" Style="{StaticResource Nova.IconButton}" FontFamily="Segoe UI Symbol" Content="◫"
+                                      ToolTip="Dual pane (Ctrl+Shift+D); F6 switches pane" AutomationProperties.Name="Dual pane" Click="OnDualPaneClick"/>
+                        <Button x:Name="MoreButton" Style="{StaticResource Nova.IconButton}" Content="&#xE712;" ToolTip="More actions" AutomationProperties.Name="More actions" Click="OnMoreClick"/>
+                    </StackPanel>
+                    <!-- Address bar: breadcrumbs, click empty space or Ctrl+L to type -->
+                    <Grid Margin="4,0,0,0" MinHeight="26">
+                        <Border x:Name="BreadcrumbBorder" Background="{DynamicResource Nova.Panel}" BorderBrush="{DynamicResource Nova.Border}"
+                                BorderThickness="1" CornerRadius="4" MouseLeftButtonUp="OnBreadcrumbAreaClick" Cursor="IBeam"
+                                ToolTip="Click to type a path (Ctrl+L)">
+                            <ScrollViewer x:Name="BreadcrumbScroll" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled">
+                                <ItemsControl x:Name="Breadcrumbs" Margin="2,0">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <StackPanel Orientation="Horizontal"/>
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Button Style="{StaticResource Nova.TextButton}" Padding="4,1" MinWidth="0" Content="{Binding Label}"
+                                                        Tag="{Binding FullPath}" ToolTip="{Binding FullPath}" Click="OnBreadcrumbClick" Cursor="Hand"/>
+                                                <TextBlock Text="›" VerticalAlignment="Center" Foreground="{DynamicResource Nova.ForegroundMuted}"/>
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Border>
+                        <TextBox x:Name="AddressBox" Visibility="Collapsed" VerticalContentAlignment="Center" Padding="4,0"
+                                 AutomationProperties.Name="Address" KeyDown="OnAddressKeyDown" LostKeyboardFocus="OnAddressLostFocus"/>
+                    </Grid>
+                </DockPanel>
+                <Grid x:Name="BrowserHostArea"/>
+            </DockPanel>
+        </Grid>
+    </DockPanel>
+</Window>

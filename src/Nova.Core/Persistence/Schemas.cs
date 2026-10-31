@@ -174,7 +174,7 @@ public static class Schemas
         if (!IsFinite(w.Width) || w.Width < 200 || w.Width > 20000) w.Width = 1100;
         if (!IsFinite(w.Height) || w.Height < 200 || w.Height > 20000) w.Height = 720;
         if (!IsFinite(w.SidebarWidth) || w.SidebarWidth < 160 || w.SidebarWidth > 1000) w.SidebarWidth = 280;
-        if (!IsFinite(w.DockedWidth) || w.DockedWidth < 160 || w.DockedWidth > 2000) w.DockedWidth = 300;
+        if (!IsFinite(w.DockedWidth) || w.DockedWidth < 300 || w.DockedWidth > 4000) w.DockedWidth = 1000;
         if (!IsFinite(w.Left) || !IsFinite(w.Top)) { w.Left = double.NaN; w.Top = double.NaN; }
         return notes;
     }

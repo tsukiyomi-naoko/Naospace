@@ -58,7 +58,6 @@ public sealed class WorkspaceSession
     public bool DualPane { get; set; }
     public int ActivePaneIndex { get; set; }
     public double SplitRatio { get; set; } = 0.5;
-    public bool BrowserExpanded { get; set; } = true;
     public List<PaneState> Panes { get; set; } = new() { new PaneState(), new PaneState() };
     public DateTimeOffset Modified { get; set; } = DateTimeOffset.UtcNow;
 
@@ -85,7 +84,6 @@ public sealed class WorkspaceSession
         DualPane = DualPane,
         ActivePaneIndex = ActivePaneIndex,
         SplitRatio = SplitRatio,
-        BrowserExpanded = BrowserExpanded,
         Panes = Panes.Select(p => p.Clone(newIds)).ToList(),
         Modified = Modified,
     };

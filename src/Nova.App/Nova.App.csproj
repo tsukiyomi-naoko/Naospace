@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <!-- Only used for the notification-area (tray) icon. -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <RootNamespace>Nova.App</RootNamespace>
+    <AssemblyName>NovaWorkspace</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\nova.ico</ApplicationIcon>
+    <!-- WFO0003: DPI awareness is declared in the manifest on purpose (WPF owns the process, WinForms is only used for the tray icon). -->
+    <NoWarn>$(NoWarn);CA1416;WFO1000;WFO0003</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- WinForms implicit usings would make many WPF type names ambiguous. -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\nova.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Nova.Core\Nova.Core.csproj" />
+    <ProjectReference Include="..\Nova.Windows\Nova.Windows.csproj" />
+  </ItemGroup>
+</Project>

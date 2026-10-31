@@ -107,7 +107,6 @@ public sealed class SnapshotCollection : IVersionedDocument
         target.DualPane = copy.DualPane;
         target.ActivePaneIndex = copy.ActivePaneIndex;
         target.SplitRatio = copy.SplitRatio;
-        target.BrowserExpanded = copy.BrowserExpanded;
         target.Panes = copy.Panes;
         target.Modified = DateTimeOffset.UtcNow;
         target.Normalize();
@@ -130,7 +129,8 @@ public enum DockEdge { Left, Right }
 
 public sealed class WindowPlacement
 {
-    /// <summary>Bounds in device-independent units (1/96 inch) in virtual-screen coordinates.</summary>
+    /// <summary>Floating-mode bounds of the expanded window in physical pixels (virtual-screen coordinates), as reported by
+    /// GetWindowRect. Physical units avoid ambiguity across monitors with different DPI.</summary>
     public double Left { get; set; } = double.NaN;
     public double Top { get; set; } = double.NaN;
     public double Width { get; set; } = 1100;
@@ -145,8 +145,12 @@ public sealed class WindowPlacement
 
     /// <summary>When true only the sidebar is shown (browser collapsed, tabs preserved).</summary>
     public bool Compact { get; set; }
+    /// <summary>Sidebar width in device-independent units.</summary>
     public double SidebarWidth { get; set; } = 280;
-    public double DockedWidth { get; set; } = 300;
+
+    /// <summary>Width (DIPs) of the docked panel when the browser is expanded. Only the sidebar strip is reserved on the
+    /// desktop; the expanded browser overlaps other windows like a flyout.</summary>
+    public double DockedWidth { get; set; } = 1000;
     public bool Maximized { get; set; }
 }
 

@@ -1,0 +1,17 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <SolidColorBrush x:Key="Nova.Background" Color="#202020"/>
+    <SolidColorBrush x:Key="Nova.Panel" Color="#272727"/>
+    <SolidColorBrush x:Key="Nova.PanelAlt" Color="#2E2E2E"/>
+    <SolidColorBrush x:Key="Nova.Border" Color="#3D3D3D"/>
+    <SolidColorBrush x:Key="Nova.Foreground" Color="#F2F2F2"/>
+    <SolidColorBrush x:Key="Nova.ForegroundMuted" Color="#B0B0B0"/>
+    <SolidColorBrush x:Key="Nova.Accent" Color="#60CDFF"/>
+    <SolidColorBrush x:Key="Nova.AccentForeground" Color="#000000"/>
+    <SolidColorBrush x:Key="Nova.Hover" Color="#383838"/>
+    <SolidColorBrush x:Key="Nova.Pressed" Color="#444444"/>
+    <SolidColorBrush x:Key="Nova.Selected" Color="#1F3F5C"/>
+    <SolidColorBrush x:Key="Nova.Error" Color="#FF99A4"/>
+    <SolidColorBrush x:Key="Nova.Warning" Color="#FCE100"/>
+    <SolidColorBrush x:Key="Nova.InfoBar" Color="#1E3247"/>
+</ResourceDictionary>
