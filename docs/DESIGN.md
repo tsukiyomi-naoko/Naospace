@@ -16,7 +16,7 @@
 |---|---|
 | Lots of open Explorer windows | Each "go to folder" opens a **new** window, and nothing ever closes them |
 | Closing and re-opening the same folders every day | Explorer doesn't remember a *set* of folders per project |
-| Quick Access is fine for daily use but bad for projects | It's **one flat global list**, with no "ComfyUI context" separate from a "Mozaik context" |
+| Quick Access is fine for daily use but bad for projects | It's **one flat global list**, with no "Mozaik context" separate from a "VS Code" or "ComfyUI context" |
 | Hours spent browsing/cleaning at the end of the week | Files land in Downloads with no route to where they belong |
 | Switching projects is slow | Folders, tools, scripts, URLs and reference images for one project live in five different places |
 
@@ -28,11 +28,13 @@ in **one keystroke and one click**, without adding a new window and without leav
 ## 2. Core concepts
 
 ### 2.1 Workspace
-A named, saved context for one project: `ComfyUI`, `Mozaik`, `VS Code`, `GPTs Live`…
+A named, saved context for one area of work: `Mozaik CNC`, `VS Code`, `ComfyUI`, `GPTs Live`, `Admin`… Workspaces are universal: nothing in the core is specific to any app (see [VISION §2.1](VISION.md#21-universal-by-design)).
+
+- **Current project slot** (optional): one workspace, many jobs/repos/projects; `${JOB}` pins follow the selected one (see [VISION §2.2](VISION.md#22-workspaces-with-many-projects-inside-current-project))
 
 - **Pinned items**, grouped into collapsible **sections** (Folders, Tools, Links, …)
 - **Shelf**: the collapsible bottom drawer for reference pictures, notes and snippets (§4)
-- **Variables** (`${COMFY}` = `D:\AI\ComfyUI`) keep paths short and portable
+- **Variables** (`${MOZAIK}` = `D:\Mozaik`, `${JOB}` = current job folder) keep paths short and portable
 - **Color + icon** so you can tell at a glance which one is active
 - **Launch set**: what "Open everything" starts (server .bat, browser tab, VS Code folder…)
 - **Auto-activate rule** (optional): switch to `VS Code` when `Code.exe` is in the foreground
@@ -47,7 +49,7 @@ promoting a suggestion from the workspace's "recently used" list.
 | **Folder** | Opens in the workspace's *reused* Explorer window/tab (§5) | Peek (browse inside the panel), **drop target** for move/copy, open terminal / VS Code here |
 | **File** | Opens with default app | Reveal in folder, open with… |
 | **Software / Tool** | Launches exe/.lnk/.bat with args + working dir | **Single instance**: focuses it if already running; run as admin |
-| **URL** | Opens in browser | e.g. `http://127.0.0.1:8188` for ComfyUI |
+| **URL** | Opens in browser | e.g. supplier catalog, GitHub repo, `http://localhost:3000` |
 | **Command** | Runs a shell command (git pull, venv, pip…) | Output in a toast or mini console |
 | **Live folder** | Shows the **N newest files** of a folder (e.g. Downloads) | Drag them straight onto other folder tiles |
 | **Group** | Opens several items at once (e.g. 4 folders as tabs in one Explorer window) | Same idea as Quick Access Popup groups |
@@ -73,24 +75,26 @@ A **narrow, expandable sidebar that's always there** on the edge of a monitor yo
   - *Overlay expand* (default): only the rail's width is reserved, and the expanded panel slides **over** the window next to it. Your windows never resize or jump.
   - *Push expand*: the reserved space grows with the panel, so neighbouring windows resize. Useful on ultrawide screens where you keep it open all day.
 - **Opens** on hover (with a short delay so you don't open it by accident), on click, or with the hotkey. **Closes** when the mouse leaves, on `Esc`, or when you click elsewhere. A 📌 keeps it expanded.
-- **Full-screen apps** (games, video, full-screen ComfyUI): the sidebar hides automatically and gives the space back, then returns afterwards.
-- **Several monitors**: one sidebar per monitor, each showing a different workspace if you like (e.g. ComfyUI on the left screen, VS Code on the right).
+- **Full-screen apps** (games, video, presentations): the sidebar hides automatically and gives the space back, then returns afterwards.
+- **Several monitors**: one sidebar per monitor, each showing a different workspace if you like (e.g. Mozaik CNC on the left screen, VS Code on the right).
 - Best for: keeping the current project always one click away without it ever getting covered.
 
 ```
  collapsed rail           expanded (overlay expand)
 ┌──┐                     ┌──┬──────────────────────────┐
-│● │ ComfyUI             │● │ ComfyUI ▾          📌     │
-│◆ │ Mozaik              │◆ │ 🔍 filter…                │
-│▲ │ GPTs                │▲ │ ▾ Folders                 │
-│──│                     │──│  📁 checkpoints  📁 loras  │
-│📁│                     │📁│  📁 input        📁 output │
-│📁│                     │📁│ ▾ Software & tools        │
-│▶ │                     │▶ │  ▶ Start ComfyUI  🛠 Code  │
-│🛠│                     │🛠│ ▾ Downloads (live)        │
-│🌐│                     │🌐│  📄 flux_v2.safetensors →  │
-│  │                     │  ├──────── ▴ Shelf · 12 ────┤
-│▴ │                     │▴ │ [img][img][img] 📝 neg…   │
+│● │ Mozaik CNC          │● │ Mozaik CNC ▾        📌    │
+│◆ │ VS Code             │◆ │ Job: 2417 Smith kitchen ▾ │
+│▲ │ ComfyUI             │▲ │ 🔍 filter…                │
+│■ │ GPTs                │■ │ ▾ Current job             │
+│──│                     │──│  📁 Job root  📁 Drawings  │
+│📁│                     │📁│  📁 CNC out·3 📁 Cut lists │
+│📁│                     │📁│ ▾ Tools & shared          │
+│▶ │                     │▶ │  ▶ Mozaik  📁 Library      │
+│🖧│                     │🖧│  🖧 \\CNC-PC\Programs ●   │
+│  │                     │  │ ▾ Downloads (live)        │
+│  │                     │  │  📄 hinge.dxf → Drawings? │
+│  │                     │  ├──────── ▴ Shelf · 5 ─────┤
+│▴ │                     │▴ │ [img][img] 📝 check depth  │
 └──┘                     └──┴──────────────────────────┘
  ↑ reserved space         ↑ reserved   ↑ slides over windows
 ```
@@ -99,7 +103,7 @@ A **narrow, expandable sidebar that's always there** on the edge of a monitor yo
 - A free-floating panel you place anywhere, **always on top**.
 - **Global hotkey** shows/hides it at the mouse or in its last position. It can auto-hide when it loses focus ("summon" behavior) or stay put ("pinned" behavior), using the 📌 toggle.
 - Adjustable opacity when not hovered; optional **click-through** when faded.
-- Best for: quick jumps while in ComfyUI, VS Code or a game engine without changing your layout.
+- Best for: quick jumps while in Mozaik, VS Code, ComfyUI or any full-screen-ish app without changing your layout.
 
 ### 3.3 Desktop board mode
 - A large **board on the desktop**, behind all windows (attached to the desktop layer, so it survives `Win+D`).
@@ -159,7 +163,7 @@ desktop board). It's for **reference material you want to look at while working*
 | **Color swatch** | Click copies hex |
 | **Link preview** | URL with thumbnail |
 
-- Drag a Shelf image **out** and it drops as a real file (e.g. straight onto the ComfyUI canvas or a Load Image node).
+- Drag a Shelf image **out** and it drops as a real file (e.g. into an email to a client, onto the ComfyUI canvas, or into a browser upload).
 - Images can be **linked** (stay where they are) or **copied** into the workspace's own storage
   (`%APPDATA%\Naospace\workspaces\<id>\shelf\`), so deleting a download doesn't break your board.
 - Height is remembered; collapsed, it's a single strip that shows a count (`▴ Shelf · 12`).
@@ -171,7 +175,7 @@ desktop board). It's for **reference material you want to look at while working*
 1. **One Explorer window per workspace.** Naospace tracks a window per workspace through the
    `Shell.Application` → `ShellWindows` COM API. Clicking a folder **opens a new tab in that window**
    (Windows 11 tabs) or navigates the active tab, depending on your setting. It never spawns a new window.
-2. **Folder groups.** "Open models" opens checkpoints + loras + vae + controlnet as 4 tabs in that one window.
+2. **Folder groups.** "Open job" opens job root + Drawings + CNC output as 3 tabs in that one window; "Open models" does the same for ComfyUI.
 3. **Close workspace.** One click closes all Explorer windows/tabs under the workspace's folders.
 4. **Snapshot / Restore.** "Capture" saves the currently open Explorer windows and tabs (and optionally running tools) into a workspace. "Restore" reopens exactly that.
 5. **Tidy.** Closes duplicate Explorer windows/tabs pointing to the same folder.
@@ -189,11 +193,13 @@ desktop board). It's for **reference material you want to look at while working*
 - **Live Downloads** in every workspace (or a dedicated `Inbox` workspace).
 - **Routing rules** per workspace. They **suggest** by default and only move automatically if you opt in:
   ```
-  *.safetensors  name contains "lora"    →  ${COMFY}\models\loras
-  *.safetensors / *.ckpt                 →  ${COMFY}\models\checkpoints
-  *.json  (ComfyUI workflow)             →  ${COMFY}\user\default\workflows
+  Mozaik CNC:  *.dxf                          →  ${JOB}\Drawings
+               *quote*.pdf / *invoice*.pdf    →  ${JOB}\Client
+  VS Code:     *.env / *.pem                   →  ask, never auto-move (secrets)
+  ComfyUI:     *.safetensors name has "lora"   →  ${COMFY}\models\loras
+  Admin:       *invoice*.pdf                   →  ${CLIENTS}\${CLIENT}\Invoices
   ```
-  A matching file shows a `→ loras?` chip; one click moves it.
+  A matching file shows a `→ Drawings?` chip in the active workspace; one click moves it.
 - **Inbox review** (`Win+Alt+I`): everything in Downloads/Desktop older than N days, with *Move to… / Archive / Delete*.
 
 ---
@@ -217,6 +223,7 @@ plus an in-app editor so you rarely need to touch it.
       // dock example: { "type": "dock", "monitor": "DISPLAY2", "edge": "left", "railWidth": 48,
       //                 "panelWidth": 320, "expand": "overlay", "openOn": "hover", "hideOnFullscreen": true }
       "vars": { "COMFY": "D:\\AI\\ComfyUI_windows_portable\\ComfyUI" },
+      "profile": "ai-image",
       "autoActivate": { "windowTitleContains": ["ComfyUI"] },
       "sections": [
         { "name": "Folders", "items": [
@@ -252,8 +259,50 @@ plus an in-app editor so you rarely need to touch it.
       ],
       "launchSet": ["Start ComfyUI", "ComfyUI"]
     },
-    { "id": "mozaik", "name": "Mozaik",    "color": "#FF8A3D", "mode": { "type": "dock", "monitor": "DISPLAY1", "edge": "right", "expand": "overlay" }, "sections": [] },
-    { "id": "vscode", "name": "VS Code",   "color": "#2F80ED", "sections": [] },
+    {
+      "id": "mozaik",
+      "name": "Mozaik CNC",
+      "color": "#FF8A3D",
+      "profile": "cnc-cad",
+      "mode": { "type": "dock", "monitor": "DISPLAY1", "edge": "left", "expand": "overlay" },
+      "vars": { "MOZAIK": "D:\\Mozaik", "MACHINE": "\\\\CNC-PC\\Programs" },
+      "projectSlot": { "name": "Job", "var": "JOB", "from": "${MOZAIK}\\Jobs\\*", "sort": "recent" },
+      "sections": [
+        { "name": "Current job", "items": [
+          { "type": "group",  "name": "Open job", "paths": ["${JOB}", "${JOB}\\Drawings", "${JOB}\\CNC"] },
+          { "type": "folder", "path": "${JOB}\\Drawings" },
+          { "type": "folder", "path": "${JOB}\\CNC", "badge": "new" },
+          { "type": "folder", "path": "${JOB}\\Reports" },
+          { "type": "latest", "name": "Latest CNC export", "path": "${JOB}\\CNC" }
+        ]},
+        { "name": "Tools & shared", "items": [
+          { "type": "app",    "name": "Mozaik", "path": "C:\\Program Files\\Mozaik\\Mozaik.exe", "singleInstance": true },
+          { "type": "folder", "name": "Library", "path": "${MOZAIK}\\Library" },
+          { "type": "folder", "name": "Machine", "path": "${MACHINE}", "status": "reachable" }
+        ]}
+      ],
+      "routing": [
+        { "match": "*.dxf", "to": "${JOB}\\Drawings" },
+        { "match": ["*quote*.pdf", "*invoice*.pdf"], "to": "${JOB}\\Client" }
+      ],
+      "launchSet": ["Mozaik", "Open job"]
+    },
+    {
+      "id": "vscode",
+      "name": "VS Code",
+      "color": "#2F80ED",
+      "profile": "code-project",
+      "projectSlot": { "name": "Repo", "var": "REPO", "from": ["D:\\Dev\\*", "D:\\Naoko\\IoT Developement\\*"], "sort": "recent" },
+      "sections": [
+        { "name": "Repo", "items": [
+          { "type": "app",     "name": "Open in VS Code", "path": "code", "args": "\"${REPO}\"" },
+          { "type": "app",     "name": "Terminal here", "path": "wt", "args": "-d \"${REPO}\"" },
+          { "type": "folder",  "path": "${REPO}" },
+          { "type": "git",     "path": "${REPO}" },
+          { "type": "command", "name": "Dev server", "cmd": "npm run dev", "cwd": "${REPO}", "status": { "port": 3000 } }
+        ]}
+      ]
+    },
     { "id": "gpts",   "name": "GPTs Live", "color": "#22C55E", "mode": { "type": "board" }, "sections": [] }
   ]
 }
