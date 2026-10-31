@@ -1,0 +1,49 @@
+<Window x:Class="Nova.App.Views.PinEditorDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Edit pin" Width="520" SizeToContent="Height" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False" FontSize="12.5"
+        Background="{DynamicResource ApplicationBackgroundBrush}" Foreground="{DynamicResource TextFillColorPrimaryBrush}">
+    <Grid Margin="16">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="110" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="Name" VerticalAlignment="Center" />
+        <TextBox x:Name="NameBox" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource CompactTextBox}" Margin="0,3" />
+
+        <TextBlock Grid.Row="1" Text="Kind" VerticalAlignment="Center" />
+        <ComboBox x:Name="KindBox" Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource CompactComboBox}" Margin="0,3" />
+
+        <TextBlock Grid.Row="2" Text="Target" VerticalAlignment="Center" />
+        <TextBox x:Name="TargetBox" Grid.Row="2" Grid.Column="1" Style="{StaticResource CompactTextBox}" Margin="0,3"
+                 ToolTip="Path, URL or command. Use ${NAME} for workspace variables and %VAR% for environment variables." />
+        <Button Grid.Row="2" Grid.Column="2" Content="…" Width="32" Margin="6,3,0,3" Click="OnBrowse" ToolTip="Browse" />
+
+        <TextBlock Grid.Row="3" Text="Arguments" VerticalAlignment="Center" />
+        <TextBox x:Name="ArgsBox" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource CompactTextBox}" Margin="0,3" />
+
+        <TextBlock Grid.Row="4" Text="Start in" VerticalAlignment="Center" />
+        <TextBox x:Name="WorkDirBox" Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource CompactTextBox}" Margin="0,3" />
+
+        <TextBlock Grid.Row="5" Text="Note" VerticalAlignment="Center" />
+        <TextBox x:Name="NoteBox" Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" Style="{StaticResource CompactTextBox}" Margin="0,3" />
+
+        <CheckBox x:Name="AdminBox" Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="2" Content="Run as administrator" Margin="0,6,0,0" />
+
+        <TextBlock x:Name="Resolved" Grid.Row="7" Grid.Column="1" Grid.ColumnSpan="2" Margin="0,8,0,0" TextWrapping="Wrap" FontSize="11"
+                   Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+
+        <StackPanel Grid.Row="8" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+            <Button Content="Save" IsDefault="True" MinWidth="80" Click="OnSave" />
+            <Button Content="Cancel" IsCancel="True" MinWidth="80" Margin="8,0,0,0" />
+        </StackPanel>
+    </Grid>
+</Window>

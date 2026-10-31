@@ -95,7 +95,13 @@ public class TabState
 public partial class WorkingLocation : ObservableObject
 {
     public string Path { get; set; } = "";
-    [ObservableProperty] private string? _label;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(DisplayName))]
+    private string? _label;
+
+    [JsonIgnore] public string DisplayName => string.IsNullOrWhiteSpace(Label) ? Util.PathUtil.DisplayName(Path) : Label!;
+    [JsonIgnore] public string ParentPath => Util.PathUtil.Parent(Path) ?? "";
     [ObservableProperty] private DateTimeOffset _lastUsedAt = DateTimeOffset.Now;
     public DateTimeOffset AddedAt { get; set; } = DateTimeOffset.Now;
 }

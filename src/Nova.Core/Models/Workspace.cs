@@ -125,11 +125,16 @@ public partial class PinItem : PinNode
     [ObservableProperty] private bool _runAsAdministrator;
 
     [JsonIgnore] public bool IsNavigable => Kind == PinKind.Folder;
+
+    /// <summary>Leaves have nothing to expand; present so tree bindings resolve uniformly.</summary>
+    [JsonIgnore] public bool IsExpanded { get => false; set { } }
 }
 
 public partial class RecentEntry : ObservableObject
 {
     public string Path { get; set; } = "";
+    [JsonIgnore] public string DisplayName => Util.PathUtil.DisplayName(Path);
+    [JsonIgnore] public string ParentPath => Util.PathUtil.Parent(Path) ?? "";
     [ObservableProperty] private DateTimeOffset _lastVisited = DateTimeOffset.Now;
     [ObservableProperty] private int _visitCount = 1;
 }
