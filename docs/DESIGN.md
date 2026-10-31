@@ -1,259 +1,316 @@
-# Naospace: Design Doc (v0, pre-development)
+# Naospace: Design Doc (v0.2, pre-development)
 
-> **Workspaces for your file system.** Each project gets its own folders, tools and links,
-> all in one small panel. You can pin it, keep it on the desktop or call it up with a hotkey,
-> so you don't end up with 40 Explorer windows open.
+> **Everything a project needs, one keystroke away.** Each project gets a workspace with its folders,
+> tools, links and reference images. You can keep it docked to the screen edge, floating on top
+> or on the desktop, and stop closing, sorting and reopening Explorer windows.
+
+**Target platform:** Windows 11 (uses Explorer tabs, Mica/Fluent styling, Win11 snap behavior).
 
 ---
 
-## 1. The problem (what we're actually fixing)
+## 1. The problem
 
 | Pain | Root cause |
 |---|---|
 | Lots of open Explorer windows | Each "go to folder" opens a **new** window, and nothing ever closes them |
 | Closing and re-opening the same folders every day | Explorer doesn't remember a *set* of folders per project |
-| Quick Access is fine for daily use but bad for projects | It's **one flat global list**. It can't hold a "ComfyUI context" separate from a "Mozaik context" |
-| Hours spent browsing/cleaning at the end of the week | Files land in Downloads with no route to where they belong (e.g. `.safetensors` → `models/loras`) |
-| Switching projects is slow | Folders, tools, scripts and URLs for one project live in five different places |
+| Quick Access is fine for daily use but bad for projects | It's **one flat global list**, with no "ComfyUI context" separate from a "Mozaik context" |
+| Hours spent browsing/cleaning at the end of the week | Files land in Downloads with no route to where they belong |
+| Switching projects is slow | Folders, tools, scripts, URLs and reference images for one project live in five different places |
 
-**Goal:** opening any project location takes **one keystroke and one click**, never adds a new window, and moving files to their right place takes **one drag**.
+**Goal (accessibility first):** while you work on a project, *everything* related to it can be reached
+in **one keystroke and one click**, without adding a new window and without leaving the current app.
 
 ---
 
 ## 2. Core concepts
 
 ### 2.1 Workspace
-A named, saved set of **items** for one project/context. Examples: `ComfyUI`, `Mozaik`, `VS Code`, `GPTs Live`.
+A named, saved context for one project: `ComfyUI`, `Mozaik`, `VS Code`, `GPTs Live`…
 
-A workspace has:
-- **Items**, grouped into optional **sections** (e.g. "Models", "I/O", "Tools")
-- **Variables** (`${COMFY}` = `D:\AI\ComfyUI`) so paths stay short and portable
-- A **color + icon** so you can tell at a glance which one is active
-- Optional **launch set**: what "Open everything" starts (server .bat, browser tab, VS Code folder…)
-- Optional **auto-activate rule**: e.g. switch to `VS Code` when `Code.exe` is in the foreground
+- **Pinned items**, grouped into collapsible **sections** (Folders, Tools, Links, …)
+- **Shelf**: the collapsible bottom drawer for reference pictures, notes and snippets (§4)
+- **Variables** (`${COMFY}` = `D:\AI\ComfyUI`) keep paths short and portable
+- **Color + icon** so you can tell at a glance which one is active
+- **Launch set**: what "Open everything" starts (server .bat, browser tab, VS Code folder…)
+- **Auto-activate rule** (optional): switch to `VS Code` when `Code.exe` is in the foreground
 
-### 2.2 Item types
+### 2.2 What you can pin
+Pin by **drag & drop** (from Explorer, the browser, the taskbar, the Start menu), by **paste**
+(`Ctrl+V` of a path, URL or screenshot), from Explorer's **right-click → Pin to Naospace**, or by
+promoting a suggestion from the workspace's "recently used" list.
+
 | Type | Click | Extra |
 |---|---|---|
-| **Folder** | Open in the *reused* Explorer window (see §4) | Peek (browse inside the panel), **drop target** for move/copy |
-| **File** | Open with default app | "Reveal in folder" |
-| **App / Tool** | Launch exe/.bat/.lnk with args + working dir | "Run as admin", "single instance" (focus if already running) |
-| **URL** | Open in browser | e.g. `http://127.0.0.1:8188` for ComfyUI |
-| **Command** | Run a shell command (git pull, venv activate, pip update…) | Show output in a toast or a mini console |
-| **Live folder** | Shows the **N most recent files** of a folder (e.g. Downloads) | Drag them straight onto other folder tiles |
-
-### 2.3 The Dock (the overlay panel)
-One compact, keyboard-first window with **four display modes**, switchable at any time:
-
-| Mode | Behavior | When to use |
-|---|---|---|
-| **Pinned** | Always on top, small, semi-transparent when not hovered | Heavy work sessions (ComfyUI model shuffling) |
-| **Desktop** | Lives *on* the desktop, behind all windows, like a widget/Fences | Ambient access, "my desk" |
-| **Summoned** (default) | Hidden; a **global hotkey** drops it in front at the mouse or screen edge; `Esc` or losing focus hides it | Everyday use |
-| **Edge-docked** | Collapses to a thin strip on a screen edge, expands on hover | Multi-monitor setups |
+| **Folder** | Opens in the workspace's *reused* Explorer window/tab (§5) | Peek (browse inside the panel), **drop target** for move/copy, open terminal / VS Code here |
+| **File** | Opens with default app | Reveal in folder, open with… |
+| **Software / Tool** | Launches exe/.lnk/.bat with args + working dir | **Single instance**: focuses it if already running; run as admin |
+| **URL** | Opens in browser | e.g. `http://127.0.0.1:8188` for ComfyUI |
+| **Command** | Runs a shell command (git pull, venv, pip…) | Output in a toast or mini console |
+| **Live folder** | Shows the **N newest files** of a folder (e.g. Downloads) | Drag them straight onto other folder tiles |
+| **Group** | Opens several items at once (e.g. 4 folders as tabs in one Explorer window) | Same idea as Quick Access Popup groups |
 
 ---
 
-## 3. Interaction design
+## 3. Display modes
 
-### Global hotkeys (configurable)
+One workspace model, three ways to show it. You can switch at any time, and each workspace remembers
+its preferred mode.
+
+### 3.1 Dock mode
+- Attaches to a **screen edge** (left/right/top) as a real Windows **AppBar**: maximized windows
+  resize around it instead of covering it, just like the taskbar.
+- Compact: icons + short labels, sections collapse to icon rows.
+- Optional **auto-hide**: shrinks to a thin colored strip (the workspace color) and expands on hover or hotkey.
+- Best for: long sessions on one project, ultrawide or multi-monitor setups.
+
+### 3.2 Floating overlay mode
+- A free-floating panel you place anywhere, **always on top**.
+- **Global hotkey** shows/hides it at the mouse or in its last position. It can auto-hide when it loses focus ("summon" behavior) or stay put ("pinned" behavior), using the 📌 toggle.
+- Adjustable opacity when not hovered; optional **click-through** when faded.
+- Best for: quick jumps while in ComfyUI, VS Code or a game engine without changing your layout.
+
+### 3.3 Desktop board mode
+- A large **board on the desktop**, behind all windows (attached to the desktop layer, so it survives `Win+D`).
+- Shows the workspace in full: big tiles, the Shelf expanded, reference images shown large.
+- Can show **several workspaces side by side** as columns, like a project wall.
+- The hotkey **brings the board to the front** temporarily; `Esc` sends it back behind your windows.
+- Best for: an overview at the start/end of a day, mood boards, picking a project to work on.
+
+### Global hotkeys (configurable, defaults)
 | Hotkey | Action |
 |---|---|
-| `Win+Alt+Space` (suggested) | Toggle the Dock (summon/hide) |
-| `Win+Alt+P` | Toggle Pinned mode |
-| `Win+Alt+1..9` | Jump straight to workspace N (summons Dock) |
+| `Win+Alt+Space` | Show/hide the overlay, or bring the board/dock to the front |
+| `Win+Alt+P` | Toggle pinned (stays on top) vs. summon behavior |
+| `Win+Alt+1..9` | Jump to workspace N |
+| `Win+Alt+S` | Open/close the Shelf |
+| `Win+Alt+I` | Inbox review (§6) |
 
-### Inside the Dock
-- **Type to filter**: start typing to fuzzy-filter items in the current workspace, `Enter` opens. `Tab` searches *all* workspaces.
+### Inside the panel
+- **Type to filter**: fuzzy-filters the current workspace, `Enter` opens. `Tab` searches all workspaces.
 - `Ctrl+1..9` switch workspace, `Ctrl+Tab` cycle.
-- `Space` on a folder = **Peek** (inline file list, navigate with arrows, drag out, `Enter` opens in Explorer).
-- Right-click item: Open / Open in new tab / Copy path / Open terminal here / Open in VS Code / Edit / Remove.
-- **Drag & drop**:
-  - Drop **files** onto a folder tile: **move** (same drive) or **copy** (other drive). Hold `Ctrl` = copy, `Shift` = move (same as Explorer).
-  - Drop a **folder/exe/shortcut** onto empty space: **add it as an item** to the current workspace.
-  - Drag a tile out (to an app, a browser upload field…): drags the real path.
+- `Space` on a folder = **Peek** (inline file list, arrow keys to navigate, drag files out).
+- **Drag & drop**: drop files on a folder tile to **move** (same drive) or **copy** (other drive), with `Ctrl`/`Shift` overrides like Explorer.
+  Drop anything on empty space to **pin** it. Drag a tile out to drop the real file/path into another app.
 
-### Sketch
+### Sketch (floating overlay, Shelf open)
 ```
-┌─ Naospace ───────────────── ComfyUI ▾ ── 📌 ─ ✕ ┐
-│ 🔍 filter…                                       │
-│ ── Server ─────────────────────────────────────  │
-│ ▶ Start ComfyUI     🌐 127.0.0.1:8188   ⟳ Update │
-│ ── Models ─────────────────────────────────────  │
-│ 📁 checkpoints  📁 loras  📁 vae  📁 controlnet  │
-│ 📁 upscale      📁 embeddings                    │
-│ ── I/O ────────────────────────────────────────  │
-│ 📁 input   📁 output   📁 custom_nodes  📁 root  │
-│ ── Downloads (live) ───────────────────────────  │
-│ 📄 flux_style_v2.safetensors     2 min  → loras? │
-│ 📄 workflow_upscale.json        10 min           │
-│ ── Tools ──────────────────────────────────────  │
-│ 🛠 ComfyUI-Manager  🛠 Civitai Helper  🛠 VS Code │
-└──────────────────────────────────────────────────┘
+┌─ Naospace ─────────────────── ● ComfyUI ▾ ── 📌 ─ ✕ ┐
+│ 🔍 filter…                                         │
+│ ▾ Folders                                          │
+│   📁 checkpoints 📁 loras 📁 vae 📁 controlnet       │
+│   📁 input  📁 output  📁 custom_nodes  📁 root     │
+│ ▾ Software & tools                                 │
+│   ▶ Start ComfyUI  🛠 VS Code  🛠 Photoshop  ⟳ Update │
+│ ▾ Links                                            │
+│   🌐 127.0.0.1:8188  🌐 Civitai  🌐 GitHub repo     │
+│ ▾ Downloads (live)                                 │
+│   📄 flux_style_v2.safetensors   2 min  → loras?    │
+├──────────────────── ▴ Shelf ───────────────────────┤
+│ [img][img][img][img]  📝 prompt: "cinematic…"       │
+│ [img][img]  🎨 #2B1E3F #FF8A3D   📝 todo: fix vae   │
+└────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 4. The key feature: stop the window sprawl
+## 4. The Shelf (collapsible bottom drawer)
 
-This is what changes things, more than any shortcut does.
+A per-workspace drawer that slides out from the bottom of the overlay/dock (or sits expanded on the
+desktop board). It's for **reference material you want to look at while working**, not for files you open.
 
-1. **Explorer window reuse.** Naospace keeps track of **one Explorer window per workspace** (via the
-   `Shell.Application` → `ShellWindows` COM API). Clicking a folder **navigates that window** instead
-   of opening a new one. On Windows 11 we can optionally open it as a **new tab** in that window
-   instead (best effort, since Explorer has no official "new tab" API).
-2. **"Close workspace" button.** Closes every Explorer window/tab whose path sits under the workspace's
-   folders. Leaving a project for the day closes its windows in one click.
-3. **Snapshot / Restore.** "Capture" grabs every currently open Explorer window (and optionally
-   running tools) and saves them as a workspace or a launch set. "Restore" reopens exactly that.
-   That turns "I have 12 windows open for this project" into a reusable workspace in one click.
-4. **Global "Tidy" command.** Close all Explorer windows that point to the same folder (duplicates)
-   or that haven't been focused in X hours.
+| Shelf item | Behavior |
+|---|---|
+| **Reference image** | Thumbnail; hover to enlarge; click to **pin to screen** as a separate floating always-on-top image (resizable, adjustable opacity, click-through), similar to PureRef/Snipaste |
+| **Screenshot** | `Ctrl+V` a clipboard screenshot straight into the Shelf |
+| **Note / TODO** | Short text, checkboxes |
+| **Snippet** | Text copied to the clipboard on click, e.g. prompts, negative prompts, seeds, CLI args |
+| **Color swatch** | Click copies hex |
+| **Link preview** | URL with thumbnail |
 
----
-
-## 5. Fixing the end-of-week cleanup
-
-The real fix for "hours browsing my PC" is that files should **never pile up in the wrong place**.
-
-- **Live Downloads view** in every workspace (or a dedicated `Inbox` workspace).
-- **Routing rules** (per workspace), suggestions only at first, never automatic moves unless you opt in:
-  ```
-  *.safetensors  where name contains "lora"  →  ${COMFY}\models\loras
-  *.safetensors / *.ckpt                      →  ${COMFY}\models\checkpoints
-  *.json         where it's a ComfyUI workflow →  ${COMFY}\user\default\workflows
-  ```
-  A matching file shows a `→ loras?` chip; click it to move it.
-- **Inbox review** (`Win+Alt+I`): a list of everything in Downloads/Desktop older than N days with
-  one-click actions *Move to… / Archive / Delete*. Five minutes instead of an afternoon.
-- Later: optional per-workspace **"stale" report**, i.e. big files in output folders you haven't touched in 30 days.
+- Drag a Shelf image **out** and it drops as a real file (e.g. straight onto the ComfyUI canvas or a Load Image node).
+- Images can be **linked** (stay where they are) or **copied** into the workspace's own storage
+  (`%APPDATA%\Naospace\workspaces\<id>\shelf\`), so deleting a download doesn't break your board.
+- Height is remembered; collapsed, it's a single strip that shows a count (`▴ Shelf · 12`).
 
 ---
 
-## 6. Configuration
+## 5. Stopping the Explorer sprawl
 
-Plain JSON in `%APPDATA%\Naospace\workspaces.json` (editable by hand, synced via OneDrive/git if
-you want), plus an in-app editor so you rarely need to touch the file.
+1. **One Explorer window per workspace.** Naospace tracks a window per workspace through the
+   `Shell.Application` → `ShellWindows` COM API. Clicking a folder **opens a new tab in that window**
+   (Windows 11 tabs) or navigates the active tab, depending on your setting. It never spawns a new window.
+2. **Folder groups.** "Open models" opens checkpoints + loras + vae + controlnet as 4 tabs in that one window.
+3. **Close workspace.** One click closes all Explorer windows/tabs under the workspace's folders.
+4. **Snapshot / Restore.** "Capture" saves the currently open Explorer windows and tabs (and optionally running tools) into a workspace. "Restore" reopens exactly that.
+5. **Tidy.** Closes duplicate Explorer windows/tabs pointing to the same folder.
+6. **File dialog jump** (borrowed from Quick Access Popup). When an Open/Save/Upload dialog is in front,
+   clicking a workspace folder **changes the dialog's folder** instead of opening Explorer. This is
+   important for uploading images and loading models.
+
+> Windows 11 has no official API for opening an Explorer tab. We do it the best-effort way (focus window → `Ctrl+T` → navigate)
+> and fall back to navigating the existing window if it fails.
+
+---
+
+## 6. Ending the weekend cleanup
+
+- **Live Downloads** in every workspace (or a dedicated `Inbox` workspace).
+- **Routing rules** per workspace. They **suggest** by default and only move automatically if you opt in:
+  ```
+  *.safetensors  name contains "lora"    →  ${COMFY}\models\loras
+  *.safetensors / *.ckpt                 →  ${COMFY}\models\checkpoints
+  *.json  (ComfyUI workflow)             →  ${COMFY}\user\default\workflows
+  ```
+  A matching file shows a `→ loras?` chip; one click moves it.
+- **Inbox review** (`Win+Alt+I`): everything in Downloads/Desktop older than N days, with *Move to… / Archive / Delete*.
+
+---
+
+## 7. Configuration
+
+Plain JSON in `%APPDATA%\Naospace\workspaces.json` (the location can point to OneDrive/git for syncing),
+plus an in-app editor so you rarely need to touch it.
 
 ```jsonc
 {
-  "hotkeys": { "toggle": "Win+Alt+Space", "pin": "Win+Alt+P", "inbox": "Win+Alt+I" },
-  "dock":    { "mode": "summoned", "opacity": 0.92, "position": "mouse" },
-  "explorer": { "reuseWindow": true, "preferTabs": true },
+  "hotkeys": { "toggle": "Win+Alt+Space", "pin": "Win+Alt+P", "shelf": "Win+Alt+S", "inbox": "Win+Alt+I" },
+  "explorer": { "reuseWindow": true, "openAs": "tab" },        // "tab" | "navigate"
 
   "workspaces": [
     {
       "id": "comfy",
       "name": "ComfyUI",
       "color": "#7C5CFF",
+      "mode": { "type": "overlay", "pinned": false, "opacity": 0.92 },   // "dock" | "overlay" | "board"
       "vars": { "COMFY": "D:\\AI\\ComfyUI_windows_portable\\ComfyUI" },
-      "autoActivate": { "processes": ["python.exe"], "windowTitleContains": ["ComfyUI"] },
+      "autoActivate": { "windowTitleContains": ["ComfyUI"] },
       "sections": [
-        { "name": "Server", "items": [
-          { "type": "app",  "name": "Start ComfyUI", "path": "${COMFY}\\..\\run_nvidia_gpu.bat", "singleInstance": true },
-          { "type": "url",  "name": "UI", "url": "http://127.0.0.1:8188" },
-          { "type": "command", "name": "Update", "cmd": "git pull", "cwd": "${COMFY}" }
-        ]},
-        { "name": "Models", "items": [
+        { "name": "Folders", "items": [
           { "type": "folder", "path": "${COMFY}\\models\\checkpoints" },
           { "type": "folder", "path": "${COMFY}\\models\\loras" },
-          { "type": "folder", "path": "${COMFY}\\models\\vae" }
-        ]},
-        { "name": "I/O", "items": [
           { "type": "folder", "path": "${COMFY}\\input" },
           { "type": "folder", "path": "${COMFY}\\output" },
-          { "type": "folder", "path": "${COMFY}\\custom_nodes" }
+          { "type": "group",  "name": "All models", "paths": ["${COMFY}\\models\\checkpoints", "${COMFY}\\models\\loras", "${COMFY}\\models\\vae"] }
+        ]},
+        { "name": "Software & tools", "items": [
+          { "type": "app", "name": "Start ComfyUI", "path": "${COMFY}\\..\\run_nvidia_gpu.bat", "singleInstance": true },
+          { "type": "app", "name": "VS Code", "path": "code", "args": "${COMFY}\\custom_nodes" },
+          { "type": "command", "name": "Update", "cmd": "git pull", "cwd": "${COMFY}" }
+        ]},
+        { "name": "Links", "items": [
+          { "type": "url", "name": "ComfyUI", "url": "http://127.0.0.1:8188" }
         ]},
         { "name": "Downloads", "items": [
           { "type": "live", "path": "%USERPROFILE%\\Downloads", "count": 6 }
         ]}
       ],
+      "shelf": {
+        "open": true,
+        "items": [
+          { "type": "image",   "path": "shelf/ref_lighting.png", "stored": "copy" },
+          { "type": "snippet", "name": "Neg prompt", "text": "blurry, lowres, watermark" },
+          { "type": "note",    "text": "Try VAE fix on upscale workflow" },
+          { "type": "color",   "value": "#FF8A3D" }
+        ]
+      },
       "routing": [
-        { "match": "*.safetensors", "nameContains": "lora", "to": "${COMFY}\\models\\loras" },
-        { "match": ["*.safetensors", "*.ckpt"], "to": "${COMFY}\\models\\checkpoints" }
+        { "match": "*.safetensors", "nameContains": "lora", "to": "${COMFY}\\models\\loras" }
       ],
-      "launchSet": ["Start ComfyUI", "UI"]
+      "launchSet": ["Start ComfyUI", "ComfyUI"]
     },
-    { "id": "mozaik",   "name": "Mozaik",    "color": "#FF8A3D", "sections": [] },
-    { "id": "vscode",   "name": "VS Code",   "color": "#2F80ED", "sections": [] },
-    { "id": "gpts",     "name": "GPTs Live", "color": "#22C55E", "sections": [] }
+    { "id": "mozaik", "name": "Mozaik",    "color": "#FF8A3D", "mode": { "type": "dock", "edge": "right" }, "sections": [] },
+    { "id": "vscode", "name": "VS Code",   "color": "#2F80ED", "sections": [] },
+    { "id": "gpts",   "name": "GPTs Live", "color": "#22C55E", "mode": { "type": "board" }, "sections": [] }
   ]
 }
 ```
 
 ---
 
-## 7. Tech stack recommendation
+## 8. Tech stack
 
-| Option | Pros | Cons | Verdict |
-|---|---|---|---|
-| **C# / .NET 8 + WPF** | Native Win32/COM access (ShellWindows, `RegisterHotKey`, `SetWindowPos`, shell drag-drop, `IFileOperation` for real Explorer-style copy with progress/undo), single-exe publish, mature | UI looks dated unless styled (fixed with WPF-UI / Fluent theme) | ✅ **Recommended** |
-| WinUI 3 | Modern Fluent look | Painful packaging, weaker drag-drop/topmost/transparency control | Possible later |
-| Tauri (Rust + web UI) | Pretty UI, small binary | Every shell feature needs Rust↔Win32 plumbing | Not worth it here |
-| Electron | Easy UI | 150 MB+ RAM for a launcher, weak shell integration | ❌ |
-| AutoHotkey v2 | Prototype in an evening | Hard to grow into drag-drop, peek, routing, editor | Good for a throwaway spike only |
+**C# / .NET 8 + WPF**, styled with **WPF-UI** (Fluent + Mica on Windows 11).
 
-**Proposed libraries:** `WPF-UI` (Fluent styling), `H.NotifyIcon.Wpf` (tray), `System.Text.Json`,
-`Microsoft.WindowsAPICodePack`/`Vanara` (shell icons, `IFileOperation`, COM shell windows).
-Optional later: **Everything SDK** for instant search across all workspace folders.
+Why: every key feature is a Windows shell feature. These are AppBar docking (`SHAppBarMessage`),
+global hotkeys (`RegisterHotKey`), topmost/click-through windows, desktop-layer attachment,
+`ShellWindows` COM for Explorer reuse, file-dialog navigation, shell drag-drop and `IFileOperation`
+(real Explorer-style copy/move with progress and undo). WPF reaches all of them directly and publishes as one exe.
 
-**Architecture sketch**
+| Rejected | Why |
+|---|---|
+| WinUI 3 | Modern look, but weaker control over transparency, topmost, AppBar and drag-drop; packaging is painful |
+| Tauri / Electron | Every shell feature becomes native plumbing; Electron costs 150 MB+ RAM for a launcher |
+| AutoHotkey | Great for a one-evening spike, but can't grow into the Shelf, board and editor |
+| PowerToys Command Palette extension | Could be a **companion** later (search workspaces from the palette), but it can't host the overlay, board or Shelf |
+
+**Libraries:** WPF-UI, H.NotifyIcon.Wpf (tray), Vanara (Win32/shell/COM interop), System.Text.Json.
+Later: Everything SDK for workspace-scoped search.
+
 ```
-Naospace.App        WPF UI: Dock window, editor, tray, themes
-Naospace.Core       Workspace model, config load/save, variables, routing rules (no UI, unit-testable)
-Naospace.Shell      Win32/COM: hotkeys, window modes, Explorer reuse/tabs, file ops, icons, folder watching
+Naospace.Core    Workspace model, config, variables, routing rules (no UI, unit-tested)
+Naospace.Shell   Hotkeys, AppBar, desktop layer, Explorer reuse/tabs, file dialogs, file ops, icons, watchers
+Naospace.App     WPF: Dock / Overlay / Board views, Shelf, image pins, editor, tray
 ```
 
 ---
 
-## 8. Roadmap
+## 9. Roadmap
 
-### v0.1: MVP (usable daily)
-- [ ] Tray app, auto-start with Windows
-- [ ] JSON config with variables, multiple workspaces, workspace switcher
-- [ ] Item types: folder, file, app, URL
-- [ ] Global hotkey toggle (Summoned mode) and Pinned (topmost) mode
-- [ ] Type-to-filter and keyboard navigation
-- [ ] **Explorer window reuse** (navigate an existing window instead of opening new ones)
+### v0.1: Usable daily
+- [ ] Tray app, auto-start, JSON config with variables, workspace switcher
+- [ ] Pin folders, files, software, URLs (drag & drop onto the panel)
+- [ ] **Floating overlay mode** + global hotkey + 📌 pinned toggle
+- [ ] Type-to-filter, keyboard navigation
+- [ ] **Explorer reuse**: one window per workspace, folders open as tabs
 - [ ] Drop files onto folder tiles (move/copy)
-- [ ] Drop a folder onto the Dock to add it to the workspace
 
-### v0.2: Kill the sprawl
-- [ ] Close workspace (close its Explorer windows), Tidy duplicates
-- [ ] Snapshot / Restore open Explorer windows
-- [ ] Peek (browse folder contents inside the Dock)
-- [ ] Live folder item (recent Downloads)
-- [ ] Desktop and Edge-docked modes
+### v0.2: All three modes + Shelf
+- [ ] **Dock mode** (AppBar, auto-hide)
+- [ ] **Desktop board mode** (desktop layer, bring-to-front hotkey, multi-workspace columns)
+- [ ] **Shelf**: images, paste screenshots, notes, snippets, colors; pin image to screen
+- [ ] Folder groups, Close workspace, Tidy, Snapshot / Restore
+- [ ] Peek, live Downloads
 
 ### v0.3: Flow
-- [ ] Routing rules and the Inbox review screen
-- [ ] In-app workspace editor (drag to reorder, sections, icons, colors)
-- [ ] Command items and launch sets ("Open everything")
-- [ ] Auto-activate workspace from the foreground app
-- [ ] Explorer right-click → "Add to Naospace workspace…"
+- [ ] File-dialog jump (Open/Save dialogs)
+- [ ] Routing rules + Inbox review
+- [ ] In-app editor (reorder, sections, icons, colors), Explorer right-click "Pin to Naospace"
+- [ ] Command items, launch sets, auto-activate workspace from foreground app
 
-### Later / ideas
-- Per-workspace notes/TODO scratchpad
+### Later
+- Command Palette extension (search/switch workspaces from PowerToys)
 - Everything-powered search scoped to the workspace
-- Per-workspace "recent files" (files you opened via Naospace)
-- Multi-monitor: a different default workspace per monitor
-- Import from Quick Access / Explorer pinned folders
+- Per-monitor default workspace / mode
+- Import from Quick Access and Quick Access Popup
 
 ---
 
-## 9. Existing tools (for reference, so we build what's missing)
-- **PowerToys Workspaces**: restores app *window layouts*, not folder sets; no overlay.
-- **Stardock Fences** "folder portals": desktop-only, no hotkey summon, no workspaces per project.
-- **Directory Opus / XYplorer / Files**: replace Explorer with tabs/layouts, but they're full file managers, not a lightweight project switcher.
-- **Listary / Everything**: great search, but no curated per-project sets.
+## 10. Existing tools (what we borrow, what's missing)
 
-Naospace sits between them: **a small, keyboard-first project switcher that works *with* Explorer instead of replacing it.**
+| Tool | What's good (borrow) | What's missing |
+|---|---|---|
+| **PowerToys Command Palette (+ Dock)** | Keyboard-first launcher with a pinned bar of commands and an extension model | No per-project workspaces, no reference shelf, no Explorer window management |
+| **Quick Access Popup** | Popup menu of favorites, **folder groups**, **changes folder inside file dialogs** and the current Explorer window | Menu only, nothing stays visible; no overlay/board, no images |
+| **PowerToys Workspaces** | Restores app window layouts | Not folders/tabs, no overlay |
+| **Stardock Fences** (folder portals) | Desktop-layer boards | Desktop-only, no hotkey summon, no project contexts |
+| **PureRef / Snipaste** | Reference images pinned on top of the screen | Separate from your project files and tools |
+| **Directory Opus / Files / XYplorer** | Tabs, layouts | Full Explorer replacements, not a light project switcher |
+
+Naospace combines these: **project workspaces with folders, tools and references, shown as a dock, an overlay or
+a desktop board, and working *with* Explorer instead of replacing it.**
 
 ---
 
-## 10. Open questions
-1. Windows 10 or 11? (Affects Explorer tabs and the Mica/Fluent look.)
-2. Preferred toggle hotkey? (`Win+Alt+Space`, `` Ctrl+` ``, a mouse button…)
-3. One Dock showing one workspace at a time, or a separate Dock per workspace pinned side by side?
-4. Should routing rules ever move files automatically, or always ask?
-5. Is it OK to store the config in `%APPDATA%`, or keep it in a synced folder (OneDrive/git)?
+## 11. Decisions
+
+**Decided**
+- Windows 11 only
+- Three modes: Dock, Floating overlay, Desktop board
+- Pinning of folders, software/tools, links, plus a collapsible bottom Shelf for reference images and notes
+
+**Still open**
+1. Default hotkey (`Win+Alt+Space`, `` Ctrl+` ``, a mouse button…)?
+2. Shelf images: copy into workspace storage by default, or link only?
+3. Routing rules: always ask, or allow auto-move per rule?
+4. Config location: `%APPDATA%` or a synced folder?
