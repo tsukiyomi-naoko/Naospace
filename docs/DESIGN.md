@@ -4,6 +4,8 @@
 > tools, links and reference images. You can keep it docked to the screen edge, floating on top
 > or on the desktop, and stop closing, sorting and reopening Explorer windows.
 
+> See [VISION.md](VISION.md) for principles, the full feature system and milestones. This doc details the UI.
+
 **Target platform:** Windows 11 (uses Explorer tabs, Mica/Fluent styling, Win11 snap behavior).
 
 ---
@@ -288,32 +290,7 @@ Naospace.App     WPF: Dock / Overlay / Board views, Shelf, image pins, editor, t
 
 ## 9. Roadmap
 
-### v0.1: Usable daily
-- [ ] Tray app, auto-start, JSON config with variables, workspace switcher
-- [ ] Pin folders, files, software, URLs (drag & drop onto the panel)
-- [ ] **Floating overlay mode** + global hotkey + 📌 pinned toggle
-- [ ] Type-to-filter, keyboard navigation
-- [ ] **Explorer reuse**: one window per workspace, folders open as tabs
-- [ ] Drop files onto folder tiles (move/copy)
-
-### v0.2: All three modes + Shelf
-- [ ] **Dock mode**: sidebar on a chosen monitor, reserved space (AppBar), rail ↔ expanded panel, overlay/push expand, hide when an app goes full-screen, one per monitor
-- [ ] **Desktop board mode** (desktop layer, bring-to-front hotkey, multi-workspace columns)
-- [ ] **Shelf**: images, paste screenshots, notes, snippets, colors; pin image to screen
-- [ ] Folder groups, Close workspace, Tidy, Snapshot / Restore
-- [ ] Peek, live Downloads
-
-### v0.3: Flow
-- [ ] File-dialog jump (Open/Save dialogs)
-- [ ] Routing rules + Inbox review
-- [ ] In-app editor (reorder, sections, icons, colors), Explorer right-click "Pin to Naospace"
-- [ ] Command items, launch sets, auto-activate workspace from foreground app
-
-### Later
-- Command Palette extension (search/switch workspaces from PowerToys)
-- Everything-powered search scoped to the workspace
-- Per-monitor default workspace / mode
-- Import from Quick Access and Quick Access Popup
+The roadmap now lives in [VISION.md §8 Milestones](VISION.md#8-milestones), alongside the full feature system.
 
 ---
 
