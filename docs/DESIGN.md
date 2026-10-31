@@ -57,12 +57,41 @@ promoting a suggestion from the workspace's "recently used" list.
 One workspace model, three ways to show it. You can switch at any time, and each workspace remembers
 its preferred mode.
 
-### 3.1 Dock mode
-- Attaches to a **screen edge** (left/right/top) as a real Windows **AppBar**: maximized windows
-  resize around it instead of covering it, just like the taskbar.
-- Compact: icons + short labels, sections collapse to icon rows.
-- Optional **auto-hide**: shrinks to a thin colored strip (the workspace color) and expands on hover or hotkey.
-- Best for: long sessions on one project, ultrawide or multi-monitor setups.
+### 3.1 Dock mode (sidebar)
+A **narrow, expandable sidebar that's always there** on the edge of a monitor you choose.
+
+- **Monitor + edge**: choose which monitor (e.g. "Monitor 2") and which edge (left/right; top/bottom optional).
+  The choice is stored by monitor ID, so it comes back to the same screen after a reboot or reconnecting a display.
+- **Reserves desktop space**: it registers as a Windows **AppBar** (`SHAppBarMessage`), like the taskbar.
+  Maximized and snapped windows stop at its edge instead of covering it.
+- **Two widths:**
+  - **Collapsed rail** (~48 px, the default): workspace color strip, workspace icons for switching, then the icons of pinned items. Tooltips show names.
+  - **Expanded panel** (~280–360 px, adjustable): full labels, sections, filter box, Peek, live Downloads, and the Shelf at the bottom.
+- **How it expands** (setting):
+  - *Overlay expand* (default): only the rail's width is reserved, and the expanded panel slides **over** the window next to it. Your windows never resize or jump.
+  - *Push expand*: the reserved space grows with the panel, so neighbouring windows resize. Useful on ultrawide screens where you keep it open all day.
+- **Opens** on hover (with a short delay so you don't open it by accident), on click, or with the hotkey. **Closes** when the mouse leaves, on `Esc`, or when you click elsewhere. A 📌 keeps it expanded.
+- **Full-screen apps** (games, video, full-screen ComfyUI): the sidebar hides automatically and gives the space back, then returns afterwards.
+- **Several monitors**: one sidebar per monitor, each showing a different workspace if you like (e.g. ComfyUI on the left screen, VS Code on the right).
+- Best for: keeping the current project always one click away without it ever getting covered.
+
+```
+ collapsed rail           expanded (overlay expand)
+┌──┐                     ┌──┬──────────────────────────┐
+│● │ ComfyUI             │● │ ComfyUI ▾          📌     │
+│◆ │ Mozaik              │◆ │ 🔍 filter…                │
+│▲ │ GPTs                │▲ │ ▾ Folders                 │
+│──│                     │──│  📁 checkpoints  📁 loras  │
+│📁│                     │📁│  📁 input        📁 output │
+│📁│                     │📁│ ▾ Software & tools        │
+│▶ │                     │▶ │  ▶ Start ComfyUI  🛠 Code  │
+│🛠│                     │🛠│ ▾ Downloads (live)        │
+│🌐│                     │🌐│  📄 flux_v2.safetensors →  │
+│  │                     │  ├──────── ▴ Shelf · 12 ────┤
+│▴ │                     │▴ │ [img][img][img] 📝 neg…   │
+└──┘                     └──┴──────────────────────────┘
+ ↑ reserved space         ↑ reserved   ↑ slides over windows
+```
 
 ### 3.2 Floating overlay mode
 - A free-floating panel you place anywhere, **always on top**.
@@ -183,6 +212,8 @@ plus an in-app editor so you rarely need to touch it.
       "name": "ComfyUI",
       "color": "#7C5CFF",
       "mode": { "type": "overlay", "pinned": false, "opacity": 0.92 },   // "dock" | "overlay" | "board"
+      // dock example: { "type": "dock", "monitor": "DISPLAY2", "edge": "left", "railWidth": 48,
+      //                 "panelWidth": 320, "expand": "overlay", "openOn": "hover", "hideOnFullscreen": true }
       "vars": { "COMFY": "D:\\AI\\ComfyUI_windows_portable\\ComfyUI" },
       "autoActivate": { "windowTitleContains": ["ComfyUI"] },
       "sections": [
@@ -219,7 +250,7 @@ plus an in-app editor so you rarely need to touch it.
       ],
       "launchSet": ["Start ComfyUI", "ComfyUI"]
     },
-    { "id": "mozaik", "name": "Mozaik",    "color": "#FF8A3D", "mode": { "type": "dock", "edge": "right" }, "sections": [] },
+    { "id": "mozaik", "name": "Mozaik",    "color": "#FF8A3D", "mode": { "type": "dock", "monitor": "DISPLAY1", "edge": "right", "expand": "overlay" }, "sections": [] },
     { "id": "vscode", "name": "VS Code",   "color": "#2F80ED", "sections": [] },
     { "id": "gpts",   "name": "GPTs Live", "color": "#22C55E", "mode": { "type": "board" }, "sections": [] }
   ]
@@ -266,7 +297,7 @@ Naospace.App     WPF: Dock / Overlay / Board views, Shelf, image pins, editor, t
 - [ ] Drop files onto folder tiles (move/copy)
 
 ### v0.2: All three modes + Shelf
-- [ ] **Dock mode** (AppBar, auto-hide)
+- [ ] **Dock mode**: sidebar on a chosen monitor, reserved space (AppBar), rail ↔ expanded panel, overlay/push expand, hide when an app goes full-screen, one per monitor
 - [ ] **Desktop board mode** (desktop layer, bring-to-front hotkey, multi-workspace columns)
 - [ ] **Shelf**: images, paste screenshots, notes, snippets, colors; pin image to screen
 - [ ] Folder groups, Close workspace, Tidy, Snapshot / Restore
@@ -307,6 +338,7 @@ a desktop board, and working *with* Explorer instead of replacing it.**
 **Decided**
 - Windows 11 only
 - Three modes: Dock, Floating overlay, Desktop board
+- Dock = narrow expandable sidebar on a chosen monitor edge that reserves desktop space (maximized windows don't cover it)
 - Pinning of folders, software/tools, links, plus a collapsible bottom Shelf for reference images and notes
 
 **Still open**
@@ -314,3 +346,4 @@ a desktop board, and working *with* Explorer instead of replacing it.**
 2. Shelf images: copy into workspace storage by default, or link only?
 3. Routing rules: always ask, or allow auto-move per rule?
 4. Config location: `%APPDATA%` or a synced folder?
+5. Sidebar expand default: overlay (windows never move) or push (windows resize)?
