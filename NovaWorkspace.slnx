@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Nova.Core/Nova.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Nova.Core.Tests/Nova.Core.Tests.csproj" />
+  </Folder>
+</Solution>
