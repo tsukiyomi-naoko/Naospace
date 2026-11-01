@@ -187,14 +187,45 @@ public partial class MainWindow : Window
             foreach (var t in _vm.LeftPane.Tabs.Concat(_vm.RightPane.Tabs)) _ = t.ReloadAsync();
     }
 
+    private void OnToggleBrowser(object sender, RoutedEventArgs e) => _vm.IsCompact = !_vm.IsCompact;
+
+    /// <summary>
+    /// Retracts/reveals the browser while keeping the sidebar where it is on screen: only the
+    /// width changes (each mode remembers its own width); position and height carry over.
+    /// </summary>
     private void OnCompactToggled()
     {
-        // Each mode remembers its own size; switching never loses the browsing state.
         var wasCompact = !_vm.IsCompact;
+        var wasMaximized = WindowState == WindowState.Maximized;
+        var current = wasMaximized ? RestoreBounds : new Rect(Left, Top, Width, Height);
+        if (wasMaximized && !wasCompact)
+        {
+            // Retracting from a maximized window: anchor to the screen's left work edge.
+            var wa = SystemParameters.WorkArea;
+            current = new Rect(Left < wa.Left ? wa.Left : current.Left, wa.Top, current.Width, wa.Height);
+        }
         SaveBounds(wasCompact);
         ApplyLayout();
-        if (_appBar?.IsDocked == true) ApplyDock();
-        else ApplyBounds();
+        if (_appBar?.IsDocked == true) { ApplyDock(); return; }
+
+        _applyingBounds = true;
+        try
+        {
+            var target = CurrentModeBounds();
+            WindowState = WindowState.Normal;
+            var width = Math.Max(MinWidth, target.Width > 0 ? target.Width : (_vm.IsCompact ? 300 : 1100));
+            var left = current.Left;
+            // If the sidebar hugs the right side of the screen, grow/shrink towards the left instead.
+            var screenRight = SystemParameters.VirtualScreenLeft + SystemParameters.VirtualScreenWidth;
+            var screenLeft = SystemParameters.VirtualScreenLeft;
+            if (left + width > screenRight) left = Math.Max(screenLeft, screenRight - width);
+            Left = left;
+            Top = current.Top;
+            Height = current.Height;
+            Width = width;
+            if (!_vm.IsCompact && target.Maximized) WindowState = WindowState.Maximized;
+        }
+        finally { _applyingBounds = false; }
     }
 
     private void ApplyLayout()
@@ -833,7 +864,12 @@ public partial class MainWindow : Window
 
     internal static void ShowMenu(FrameworkElement anchor, params MenuItem?[] items)
     {
-        var menu = new ContextMenu { PlacementTarget = anchor, Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom };
+        var menu = new ContextMenu
+        {
+            PlacementTarget = anchor,
+            Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom,
+            FontFamily = SystemFonts.MessageFontFamily,
+        };
         foreach (var i in items) menu.Items.Add(i is null ? new Separator() : i);
         menu.IsOpen = true;
     }

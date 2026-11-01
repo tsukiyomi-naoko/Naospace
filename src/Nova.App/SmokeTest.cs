@@ -14,6 +14,51 @@ namespace Nova.App;
 /// </summary>
 internal static class SmokeTest
 {
+    private static bool IsIconFont(System.Windows.Media.FontFamily f) =>
+        f.Source.Contains("Icons", StringComparison.OrdinalIgnoreCase) || f.Source.Contains("MDL2", StringComparison.OrdinalIgnoreCase);
+
+    private static bool LooksLikeWords(string? t) => t is not null && t.Count(char.IsAsciiLetter) >= 3;
+
+    /// <summary>Readable text must never be rendered with the icon font (it shows as boxes on Windows).</summary>
+    private static void CheckFonts(Window window, Action<bool, string> check)
+    {
+        var bad = new List<string>();
+        void Walk(DependencyObject d)
+        {
+            if (d is System.Windows.Controls.TextBlock tb && tb.IsVisible && LooksLikeWords(tb.Text) && IsIconFont(tb.FontFamily))
+                bad.Add(tb.Text);
+            for (int i = 0; i < System.Windows.Media.VisualTreeHelper.GetChildrenCount(d); i++)
+                Walk(System.Windows.Media.VisualTreeHelper.GetChild(d, i));
+        }
+        Walk(window);
+        check(bad.Count == 0, "no text rendered in the icon font" + (bad.Count > 0 ? ": " + string.Join(", ", bad.Take(5)) : ""));
+
+        // Menus inherit fonts from the element that opens them; icon buttons must not leak the icon font.
+        var iconButton = FindFirst<System.Windows.Controls.Primitives.ButtonBase>(window,
+            b => b.Style == (Style)Application.Current.FindResource("IconButton"));
+        if (iconButton is not null)
+        {
+            var item = new System.Windows.Controls.MenuItem { Header = "Probe" };
+            var menu = new System.Windows.Controls.ContextMenu { PlacementTarget = iconButton };
+            menu.Items.Add(item);
+            menu.IsOpen = true;
+            var ok = !IsIconFont(item.FontFamily);
+            menu.IsOpen = false;
+            check(ok, "menus opened from icon buttons use the UI font");
+        }
+    }
+
+    private static T? FindFirst<T>(DependencyObject root, Func<T, bool> match) where T : DependencyObject
+    {
+        for (int i = 0; i < System.Windows.Media.VisualTreeHelper.GetChildrenCount(root); i++)
+        {
+            var c = System.Windows.Media.VisualTreeHelper.GetChild(root, i);
+            if (c is T t && match(t)) return t;
+            if (FindFirst(c, match) is { } found) return found;
+        }
+        return null;
+    }
+
     public static async Task RunAsync(MainViewModel vm, MainWindow window, Diagnostics.BindingErrorListener bindings, App app)
     {
         int failures = 0;
@@ -45,6 +90,7 @@ internal static class SmokeTest
         {
             await Settle(1500);
             Check(window.IsVisible, "main window visible");
+            CheckFonts(window, Check);
             var tab = vm.LeftPane.SelectedTab;
             Check(tab is not null, "left pane has a tab");
 
@@ -88,9 +134,11 @@ internal static class SmokeTest
             vm.IsCompact = true;
             await Settle();
             Snap("compact");
+            var compactLeft = window.Left;
             vm.IsCompact = false;
             await Settle();
             Check(vm.LeftPane.SelectedTab?.Path == root, "compact toggle preserves browsing state");
+            Check(Math.Abs(window.Left - compactLeft) < 1, "retracting/revealing keeps the sidebar in place");
 
             var created = vm.CreateFolder(root, "New folder");
             await Settle(900);

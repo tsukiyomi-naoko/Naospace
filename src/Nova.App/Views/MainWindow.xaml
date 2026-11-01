@@ -127,6 +127,41 @@
             <!-- Sidebar -->
             <Border Grid.Column="0" Background="{DynamicResource LayerFillColorDefaultBrush}"
                     BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}" BorderThickness="0,1,1,0">
+                <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <!-- Retract / reveal handle for the file browser. -->
+                <Button Grid.Column="1" Width="14" VerticalAlignment="Stretch" Click="OnToggleBrowser"
+                        Background="Transparent" BorderThickness="0" Cursor="Hand" Focusable="False">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="ToolTip" Value="Hide file browser (Ctrl+B)" />
+                            <Setter Property="Content" Value="&#xE76B;" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsCompact}" Value="True">
+                                    <Setter Property="ToolTip" Value="Show file browser (Ctrl+B)" />
+                                    <Setter Property="Content" Value="&#xE76C;" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border x:Name="Bd" Background="Transparent">
+                                <TextBlock Text="{TemplateBinding Content}" FontFamily="{StaticResource NovaIcons}" FontSize="9"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="Bd" Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
                 <ScrollViewer x:Name="SidebarScroll" VerticalScrollBarVisibility="Auto" Padding="0,4,0,8">
                     <StackPanel>
                         <!-- Learned-rule suggestion -->
@@ -250,6 +285,7 @@
                         </Expander>
                     </StackPanel>
                 </ScrollViewer>
+                </Grid>
             </Border>
 
             <GridSplitter x:Name="SidebarSplitter" Grid.Column="1" Width="4" HorizontalAlignment="Stretch" Background="Transparent"
